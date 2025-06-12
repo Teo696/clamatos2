@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clamatos - Pedido en Línea</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      background: #ff3c38;
+      color: white;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    header img {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 10px;
+      margin: 1rem 0;
+    }
+
+    form {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      margin-top: 1rem;
+    }
+
+    form label {
+      display: block;
+      margin-top: 1rem;
+    }
+
+    form input,
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      margin-top: 1rem;
+      background: #ff3c38;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    form button:hover {
+      background: #e22e2a;
+    }
+
+    #mensajeExito {
+      margin-top: 1rem;
+      text-align: center;
+      color: green;
+      font-weight: bold;
+    }
+
+    .registros {
+      margin-top: 2rem;
+    }
+
+    .registros ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .registros li {
+      background: #ff3c38;
+      color: white;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-left: 5px solid #8b0000;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Clamatos</h1>
+      <img src="https://cdn.pixabay.com/photo/2020/08/03/19/40/drink-5462301_960_720.jpg" alt="Clamato preparado" />
+      <p>Haz tu pedido y pasa a recogerlo en 10 minutos</p>
+    </header>
+
+    <form id="pedidoForm">
+      <label for="nombre">Nombre del cliente:</label>
+      <input type="text" name="Nombre del cliente" id="nombre" required>
+
+      <label for="telefono">Teléfono:</label>
+      <input type="tel" name="telefono" id="telefono" required>
+
+      <label for="tamano">Tamaño del clamato:</label>
+      <select name="tamano del clamato" id="tamano" required>
+        <option value="">Selecciona</option>
+        <option value="Grande">Grande</option>
+        <option value="Mediano">Mediano</option>
+        <option value="Chico">Chico</option>
+      </select>
+
+      <label for="comentarios">Comentarios adicionales:</label>
+      <textarea name="Comentarios adicionales" id="comentarios" rows="3"></textarea>
+
+      <button type="submit">Enviar Pedido</button>
+    </form>
+
+    <div id="mensajeExito"></div>
+
+    <section class="registros">
+      <h2>Pedidos Recientes</h2>
+      <ul id="listaPedidos"></ul>
+    </section>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbymRL0Rr2eO71A0uH_LCKvM5tix1qdPv7Tv6yib77-dwuvrUz3_CzSzsQGhaQbU14L03Q/exec';
+    const form = document.getElementById('pedidoForm');
+    const mensaje = document.getElementById('mensajeExito');
+    const listaPedidos = document.getElementById('listaPedidos');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      fetch(scriptURL, { method: 'POST', body: formData })
+        .then(response => {
+          mensaje.textContent = 'Tu pedido ha sido enviado con éxito, pasa a recogerlo en 10 minutos. ¡Clamatos agradece tu preferencia!';
+          form.reset();
+          cargarPedidos();
+        })
+        .catch(error => {
+          mensaje.textContent = 'Hubo un error al enviar tu pedido. Intenta de nuevo.';
+          console.error('Error!', error.message);
+        });
+    });
+
+    function cargarPedidos() {
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          listaPedidos.innerHTML = '';
+          data.slice(-5).reverse().forEach(pedido => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <strong>${pedido['Nombre del cliente']}</strong> - ${pedido['tamano del clamato']}<br>
+              <small>${new Date(pedido.fecha).toLocaleString()}</small><br>
+              Tel: ${pedido.telefono}<br>
+              Comentarios: ${pedido['Comentarios adicionales'] || 'Ninguno'}
+            `;
+            listaPedidos.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error('Error al cargar pedidos:', err);
+        });
+    }
+
+    cargarPedidos();
+  </script>
+</body>
+</html>
